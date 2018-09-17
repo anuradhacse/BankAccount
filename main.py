@@ -214,33 +214,74 @@ def create_login_screen():
     # ----- Row 2 -----
 
     # Buttons 1, 2 and 3 here. Buttons are bound to 'handle_pin_button' function via '<Button-1>' event.
-    b_plus = tk.Button(win, text='+', font=(None, 18))
-    b_plus.grid(row=1, column=0, sticky='nsew')
-    b_plus.bind('<Button-1>', add_button_text)
+    b_one = tk.Button(win, text='1')
+    b_one.grid(row=2, column=0, sticky='nsew')
+    b_one.bind('<Button-1>', handle_pin_button)
+
+    b_two = tk.Button(win, text='2')
+    b_two.grid(row=2, column=1, sticky='nsew')
+    b_two.bind('<Button-1>', handle_pin_button)
+
+    b_three = tk.Button(win, text='3')
+    b_three.grid(row=2, column=2, sticky='nsew')
+    b_three.bind('<Button-1>', handle_pin_button)
 
     # ----- Row 3 -----
 
     # Buttons 4, 5 and 6 here. Buttons are bound to 'handle_pin_button' function via '<Button-1>' event.
-    
+    b_four = tk.Button(win, text='4')
+    b_four.grid(row=3, column=0, sticky='nsew')
+    b_four.bind('<Button-1>', handle_pin_button)
+
+    b_five = tk.Button(win, text='5')
+    b_five.grid(row=3, column=1, sticky='nsew')
+    b_five.bind('<Button-1>', handle_pin_button)
+
+    b_six = tk.Button(win, text='6')
+    b_six.grid(row=3, column=2, sticky='nsew')
+    b_six.bind('<Button-1>', handle_pin_button)
 
     # ----- Row 4 -----
 
     # Buttons 7, 8 and 9 here. Buttons are bound to 'handle_pin_button' function via '<Button-1>' event.
-    
+    b_seven = tk.Button(win, text='7')
+    b_seven.grid(row=4, column=0, sticky='nsew')
+    b_seven.bind('<Button-1>', handle_pin_button)
+
+    b_eight = tk.Button(win, text='8')
+    b_eight.grid(row=4, column=1, sticky='nsew')
+    b_eight.bind('<Button-1>', handle_pin_button)
+
+    b_nine = tk.Button(win, text='9')
+    b_nine.grid(row=4, column=2, sticky='nsew')
+    b_nine.bind('<Button-1>', handle_pin_button)
 
     # ----- Row 5 -----
 
     # Cancel/Clear button here. 'bg' and 'activebackground' should be 'red'. But calls 'clear_pin_entry' function.
-    
+    b_cancel = tk.Button(win, text='Cancel/Clear', bg='red', activebackground='red')
+    b_cancel.grid(row=5, column=0, sticky='nsew')
+    b_cancel.bind('<Button-1>', clear_pin_entry)
+
     # Button 0 here
+    b_zero = tk.Button(win, text='0')
+    b_zero.grid(row=5, column=1, sticky='nsew')
+    b_zero.bind('<Button-1>', handle_pin_button)
 
     # Login button here. 'bg' and 'activebackground' should be 'green'). Button calls 'log_in' function.
-
+    b_login = tk.Button(win, text='Login', bg='green', activebackground='green')
+    b_login.grid(row=5, column=2, sticky='nsew')
+    b_login.bind('<Button-1>', log_in)
 
     # ----- Set column & row weights -----
 
     # Set column and row weights. There are 5 columns and 6 rows (0..4 and 0..5 respectively)
-    
+    win.grid_rowconfigure(0, weight=2)
+    win.grid_rowconfigure(1, weight=1)
+    win.grid_rowconfigure(2, weight=1)
+    win.grid_rowconfigure(3, weight=1)
+    win.grid_rowconfigure(4, weight=1)
+    win.grid_rowconfigure(5, weight=1)
 
 def create_account_screen():
     '''Function to create the account screen.'''
