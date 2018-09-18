@@ -293,26 +293,45 @@ def create_account_screen():
     # ----- Row 0 -----
 
     # FedUni Banking label here. Font size should be 24.
-    
+    title = tk.Label(win, text='FedUni Banking', font=(None, 24))
+    title.grid(row=0, column=0, columnspan=4)
 
     # ----- Row 1 -----
 
     # Account number label here
+    account_number_label = tk.Label(win, text='Account Number: ' + str(123456))
+    account_number_label.grid(row=1, column=0, columnspan=1)
 
     # Balance label here
+    balance_label = tk.Label(win, text='Balance: ' + str(5000))
+    balance_label.grid(row=1, column=1, columnspan=1)
 
     # Log out button here
-    
+    b_logout = tk.Button(win, text='Log Out')
+    b_logout.grid(row=1, column=2, columnspan=2,  sticky='nsew')
+    b_logout.bind('<Button-1>', save_and_log_out())
 
     # ----- Row 2 -----
 
     # Amount label here
+    amount_label = tk.Label(win, text='Amount($) ')
+    amount_label.grid(row=2, column=0, columnspan=1)
 
     # Amount entry here
+    amount_entry.grid(row=2, column=1, columnspan=1)
 
     # Deposit button here
+    b_deposit = tk.Button(win, text='Deposit')
+    b_deposit.grid(row=2, column=2, columnspan=1,  sticky='nsew')
+    b_deposit.bind('<Button-1>', perform_deposit())
 
     # Withdraw button here
+    b_deposit = tk.Button(win, text='Withdraw')
+    b_deposit.grid(row=2, column=3, columnspan=1, sticky='nsew')
+    b_deposit.bind('<Button-1>', perform_withdrawal())
+
+    win.grid_columnconfigure(2, weight=2)
+    win.grid_columnconfigure(3, weight=2)
 
     # NOTE: Bind Deposit and Withdraw buttons via the command attribute to the relevant deposit and withdraw
     #       functions in this file. If we "BIND" these buttons then the button being pressed keeps looking as
@@ -323,13 +342,17 @@ def create_account_screen():
     # ----- Row 3 -----
 
     # Declare scrollbar (text_scrollbar) here (BEFORE transaction text widget)
-    
+    text_scrollbar = tk.Scrollbar(win, command=transaction_text_widget.yview)
+    text_scrollbar.grid(row=3, column=4, sticky='nsew')
+    # text_scrollbar.grid(row=2, column=1, columnspan=1)
+
     # Add transaction Text widget and configure to be in 'disabled' mode so it cannot be edited.
+    transaction_text_widget.grid(row=3, column=0, columnspan=4)
     # Note: Set the yscrollcommand to be 'text_scrollbar.set' here so that it actually scrolls the Text widget
     # Note: When updating the transaction text widget it must be set back to 'normal mode' (i.e. state='normal') for it to be edited
 
     # Now add the scrollbar and set it to change with the yview of the text widget
-
+    transaction_text_widget['yscrollcommand'] = text_scrollbar.set
 
     # ----- Row 4 - Graph -----
 
@@ -343,5 +366,6 @@ def create_account_screen():
 
 # ---------- Display Login Screen & Start Main loop ----------
 
-create_login_screen()
+# create_login_screen()
+create_account_screen()
 win.mainloop()
