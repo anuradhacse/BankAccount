@@ -61,18 +61,44 @@ def log_in(event):
     global account_num_entry
 
     # Create the filename from the entered account number with '.txt' on the end
+    filename = account_number_var.get() + '.txt'
 
     # Try to open the account file for reading
-    
-        # Open the account file for reading
+    try:
+        account_file = open(filename, 'r')
+    except FileNotFoundError:
+        messagebox.showerror('Login failed', ' Invalid Account Id.')
 
-        # First line is account number
+    file_lines = account_file.readlines()          # Read the contents into a list of lines
+    account_file.close()                           # Close the file
 
-        # Second line is PIN number, raise exceptionk if the PIN entered doesn't match account PIN read 
+    num_lines = len(file_lines)                    # How many lines do we have?
 
-        # Read third and fourth lines (balance and interest rate) 
+    num_transactions = (num_lines - 4) // 2        # The first 4 lines are account details, every other 'pair' is a transaction
+
+    # Print account details
+    print('Account Number:', file_lines[0])
+    print('Pin Number    :', file_lines[1])
+    print('Balance       :', file_lines[2])
+    print('Interest Rate :', file_lines[3])
+
+    # First line is account number
+
+    # Second line is PIN number, raise exceptionk if the PIN entered doesn't match account PIN read
+    pin_number = file_lines[1][:-1]
+    print (event)
+    print ("XXXX" + pin_number_var.get())
+    print ("real pin" + pin_number)
+
+    if (pin_number_var.get() == pin_number):
+        messagebox.showinfo('Success', 'Log in successful!')
+    else:
+        messagebox.showerror('Login failed', ' Invalid Pin Number.')
+
+
+    # Read third and fourth lines (balance and interest rate)
         
-        # Section to read account transactions from file - start an infinite 'do-while' loop here
+    # Section to read account transactions from file - start an infinite 'do-while' loop here
 
             # Attempt to read a line from the account file, break if we've hit the end of the file. If we
             # read a line then it's the transaction type, so read the next line which will be the transaction amount.
