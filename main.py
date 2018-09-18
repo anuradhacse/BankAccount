@@ -37,6 +37,9 @@ transaction_text_widget = tk.Text(win, height=10, width=48)
 # The bank account object we will work with
 account = BankAccount()
 
+x = [2, 3, 4, 5, 7, 9, 11]
+y = [1200, 1300, 1403, 1589, 1763, 1863, 1900]
+
 # ---------- Button Handlers for Login Screen ----------
 
 def clear_pin_entry(event):
@@ -326,12 +329,9 @@ def create_account_screen():
     b_deposit.bind('<Button-1>', perform_deposit())
 
     # Withdraw button here
-    b_deposit = tk.Button(win, text='Withdraw')
-    b_deposit.grid(row=2, column=3, columnspan=1, sticky='nsew')
-    b_deposit.bind('<Button-1>', perform_withdrawal())
-
-    win.grid_columnconfigure(2, weight=2)
-    win.grid_columnconfigure(3, weight=2)
+    b_withdraw = tk.Button(win, text='Withdraw')
+    b_withdraw.grid(row=2, column=3, columnspan=1, sticky='nsew')
+    b_withdraw.bind('<Button-1>', perform_withdrawal())
 
     # NOTE: Bind Deposit and Withdraw buttons via the command attribute to the relevant deposit and withdraw
     #       functions in this file. If we "BIND" these buttons then the button being pressed keeps looking as
@@ -343,11 +343,12 @@ def create_account_screen():
 
     # Declare scrollbar (text_scrollbar) here (BEFORE transaction text widget)
     text_scrollbar = tk.Scrollbar(win, command=transaction_text_widget.yview)
-    text_scrollbar.grid(row=3, column=4, sticky='nsew')
-    # text_scrollbar.grid(row=2, column=1, columnspan=1)
+    text_scrollbar.grid(row=3, column=3, sticky='nse')
+
 
     # Add transaction Text widget and configure to be in 'disabled' mode so it cannot be edited.
-    transaction_text_widget.grid(row=3, column=0, columnspan=4)
+    transaction_text_widget.grid(row=3, column=0, columnspan=4, sticky='nsew')
+    transaction_text_widget.config(state='disabled')
     # Note: Set the yscrollcommand to be 'text_scrollbar.set' here so that it actually scrolls the Text widget
     # Note: When updating the transaction text widget it must be set back to 'normal mode' (i.e. state='normal') for it to be edited
 
@@ -357,15 +358,21 @@ def create_account_screen():
     # ----- Row 4 - Graph -----
 
     # Call plot_interest_graph() here to display the graph
-    
+    plot_interest_graph()
 
     # ----- Set column & row weights -----
+    win.grid_columnconfigure(2, weight=2)
+    win.grid_columnconfigure(3, weight=2)
 
     # Set column and row weights here - there are 5 rows and 5 columns (numbered 0 through 4 not 1 through 5!)
-
+    win.grid_rowconfigure(0, weight=1)
+    win.grid_rowconfigure(1, weight=1)
+    win.grid_rowconfigure(2, weight=1)
+    win.grid_rowconfigure(3, weight=1)
+    win.grid_rowconfigure(4, weight=2)
 
 # ---------- Display Login Screen & Start Main loop ----------
 
-# create_login_screen()
-create_account_screen()
+create_login_screen()
+# create_account_screen()
 win.mainloop()
