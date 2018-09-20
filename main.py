@@ -21,7 +21,7 @@ account_number_entry.focus_set()
 # The pin number entry and associated variable.
 # Note: Modify this to 'show' PIN numbers as asterisks (i.e. **** not 1234)
 pin_number_var = tk.StringVar()
-account_pin_entry = tk.Entry(win, text='PIN Number', textvariable=pin_number_var, show='*')
+account_pin_entry = tk.Entry(win, textvariable=pin_number_var, show='*')
 
 # The balance label and associated variable
 balance_var = tk.StringVar()
@@ -47,12 +47,17 @@ def clear_pin_entry(event):
     # Clear the pin number entry here
 
 def handle_pin_button(event):
-    '''Function to add the number of the button clicked to the PIN number entry via its associated variable.'''    
-
+    global pin_number_var
+    '''Function to add the number of the button clicked to the PIN number entry via its associated variable.'''
     # Limit to 4 chars in length
-
-    # Set the new pin number on the pin_number_var
-    
+    if(len(pin_number_var.get()) > 3 ):
+        messagebox.showerror('Invalid Pin Number', ' Enter a four digit PIN number.')
+        # pin_number_var.set(tk.StringVar())
+        account_pin_entry.delete(0, 'end')
+    else:
+        # Set the new pin number on the pin_number_var
+        pin_number_var.set(pin_number_var.get() + event.widget['text'])
+        print("Pin Number var " + pin_number_var.get())
 
 def log_in(event):
     '''Function to log in to the banking system using a known account number and PIN.'''
@@ -300,7 +305,7 @@ def create_login_screen():
     # Login button here. 'bg' and 'activebackground' should be 'green'). Button calls 'log_in' function.
     b_login = tk.Button(win, text='Login', bg='green', activebackground='green')
     b_login.grid(row=5, column=2, sticky='nsew')
-    b_login.bind('<Button-1>', log_in)
+    b_login.bind('<ButtonPress-1>', log_in)
 
     # ----- Set column & row weights -----
 
