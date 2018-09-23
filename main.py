@@ -25,11 +25,11 @@ account_pin_entry = tk.Entry(win, textvariable=pin_number_var, show='*')
 
 # The balance label and associated variable
 balance_var = tk.StringVar()
-balance_var.set('Balance: $0.00')
 balance_label = tk.Label(win, textvariable=balance_var)
 
 # The Entry widget to accept a numerical value to deposit or withdraw
-amount_entry = tk.Entry(win)
+amount_entry_var = tk.StringVar()
+amount_entry = tk.Entry(win, textvariable=amount_entry_var)
 
 # The transaction text widget holds text of the accounts transactions
 transaction_text_widget = tk.Text(win, height=10, width=48)
@@ -37,14 +37,13 @@ transaction_text_widget = tk.Text(win, height=10, width=48)
 # The bank account object we will work with
 account = BankAccount()
 
-x = [2, 3, 4, 5, 7, 9, 11]
-y = [1200, 1300, 1403, 1589, 1763, 1863, 1900]
-
 # ---------- Button Handlers for Login Screen ----------
 
 def clear_pin_entry(event):
     '''Function to clear the PIN number entry when the Clear / Cancel button is clicked.'''
     # Clear the pin number entry here
+    account_pin_entry.delete(0, 'end')
+
 
 def handle_pin_button(event):
     global pin_number_var
@@ -52,7 +51,6 @@ def handle_pin_button(event):
     # Limit to 4 chars in length
     if(len(pin_number_var.get()) > 3 ):
         messagebox.showerror('Invalid Pin Number', ' Enter a four digit PIN number.')
-        # pin_number_var.set(tk.StringVar())
         account_pin_entry.delete(0, 'end')
     else:
         # Set the new pin number on the pin_number_var
@@ -68,57 +66,60 @@ def log_in(event):
     # Create the filename from the entered account number with '.txt' on the end
     filename = account_number_var.get() + '.txt'
 
+    valid_account = True
+
     # Try to open the account file for reading
     try:
         account_file = open(filename, 'r')
     except FileNotFoundError:
         messagebox.showerror('Login failed', ' Invalid Account Id.')
+        valid_account = False
 
-    file_lines = account_file.readlines()          # Read the contents into a list of lines
-    account_file.close()                           # Close the file
+    if valid_account:
+        account_number   = account_file.readline()
+        pin_number = account_file.readline()[:-1]
+        # Read third and fourth lines (balance and interest rate)
+        account_balance  = account_file.readline().rstrip()
+        account_interest = account_file.readline().rstrip()
+        # Section to read account transactions from file - start an infinite 'do-while' loop here
+        # Attempt to read a line from the account file, break if we've hit the end of the file. If we
+        # read a line then it's the transaction type, so read the next line which will be the transaction amount.
+        # and then create a tuple from both lines and add it to the account's transaction_list
+        while True:
+            line = account_file.readline()          # Attempt to read a line
 
-    num_lines = len(file_lines)                    # How many lines do we have?
+            if not line:                            # If we failed, then exit
+                print('End of file!')
+                break
 
-    num_transactions = (num_lines - 4) // 2        # The first 4 lines are account details, every other 'pair' is a transaction
+            # If we did NOT fail, then the 'line' we read will be the transaction
+            # type, so the line below it will be the transaction amount.
+            amount = account_file.readline()
+            account.transaction_list += (line, amount)
 
-    # Print account details
-    print('Account Number:', file_lines[0])
-    print('Pin Number    :', file_lines[1])
-    print('Balance       :', file_lines[2])
-    print('Interest Rate :', file_lines[3])
-
-    # First line is account number
-
-    # Second line is PIN number, raise exceptionk if the PIN entered doesn't match account PIN read
-    pin_number = file_lines[1][:-1]
-    print (event)
-    print ("XXXX" + pin_number_var.get())
-    print ("real pin" + pin_number)
-
-    if (pin_number_var.get() == pin_number):
-        messagebox.showinfo('Success', 'Log in successful!')
-    else:
-        messagebox.showerror('Login failed', ' Invalid Pin Number.')
-
-
-    # Read third and fourth lines (balance and interest rate)
-        
-    # Section to read account transactions from file - start an infinite 'do-while' loop here
-
-            # Attempt to read a line from the account file, break if we've hit the end of the file. If we
-            # read a line then it's the transaction type, so read the next line which will be the transaction amount.
-            # and then create a tuple from both lines and add it to the account's transaction_list            
-
+        #add a '\n' to last item in the tuple
+        account.transaction_list[-1] += '\n'
+        print(account.transaction_list)
         # Close the file now we're finished with it
-        
-    # Catch exception if we couldn't open the file or PIN entered did not match account PIN
-    
-        # Show error messagebox and & reset BankAccount object to default...
+        account_file.close()
 
-        #  ...also clear PIN entry and change focus to account number entry
+        #raise exception if the PIN entered doesn't match account PIN read
+        if (pin_number_var.get() == pin_number):
+            account.account_number = account_number
+            account.pin_number = pin_number
+            account.balance = account_balance
+            account.interest_rate = account_interest
 
-    # Got here without raising an exception? Then we can log in - so remove the widgets and display the account screen
-    
+            messagebox.showinfo('Success', 'Log in successful!')
+
+            # Got here without raising an exception? Then we can log in - so remove the widgets and display the account screen
+            remove_all_widgets()
+            create_account_screen()
+        else:
+            messagebox.showerror('Login failed', ' Invalid Pin Number.')
+
+
+
 
 # ---------- Button Handlers for Account Screen ----------
 
@@ -137,7 +138,7 @@ def save_and_log_out():
     # Remove all widgets and display the login screen again
     
 
-def perform_deposit():
+def perform_deposit(event):
     '''Function to add a deposit for the amount in the amount entry to the
        account's transaction list.'''
     global account    
@@ -145,24 +146,42 @@ def perform_deposit():
     global balance_label
     global balance_var
 
-    # Try to increase the account balance and append the deposit to the account file
-    
-        # Get the cash amount to deposit. Note: We check legality inside account's deposit method
+    # Get the cash amount to deposit. Note: We check legality inside account's deposit method
+    deposit_amount = amount_entry.get()
+    try:
+        deposit_amount = float(deposit_amount)
+    except ValueError:
+        messagebox.showerror('Transaction Error', ' Please Enter a valid amount.')
+        amount_entry.delete(0, 'end')
+        return
 
+    if deposit_amount < 0:
+        messagebox.showerror('Transaction Error', ' Cannot deposit negetive amount of money.')
+    else:
+        amount = str(deposit_amount) + '\n'
+        account.transaction_list += ('Deposit\n', amount)
+        #show the new deposit in the text field
+        transaction_text_widget.config(state='normal')
+
+        # Try to increase the account balance and append the deposit to the account file
         # Deposit funds
-        
         # Update the transaction widget with the new transaction by calling account.get_transaction_string()
         # Note: Configure the text widget to be state='normal' first, then delete contents, then instert new
         #       contents, and finally configure back to state='disabled' so it cannot be user edited.
+        transaction_text_widget.delete('1.0', 'end')
+        transaction_text_widget.insert('insert', account.get_transaction_string())
+        transaction_text_widget.config(state='disabled')
 
         # Change the balance label to reflect the new balance
+        account.balance = float(account.balance) + float(deposit_amount)
+        balance_var.set('Balance: $' + str(account.balance))
 
         # Clear the amount entry
+        amount_entry.delete(0, 'end')
 
         # Update the interest graph with our new balance
+        plot_interest_graph()
 
-    # Catch and display exception as a 'showerror' messagebox with a title of 'Transaction Error' and the text of the exception
-        
 def perform_withdrawal():
     '''Function to withdraw the amount in the amount entry from the account balance and add an entry to the transaction list.'''
     global account    
@@ -207,7 +226,16 @@ def plot_interest_graph():
     '''Function to plot the cumulative interest for the next 12 months here.'''
 
     # YOUR CODE to generate the x and y lists here which will be plotted
-    
+    x = []
+    y = []
+    monthly_interest = float(account.interest_rate) / 12
+    multiply_factor = 1 + (monthly_interest) #insterest rate is in format 0.33 not like 33%. So we don
+    total = float(account.balance)
+    for month in range(1, 13):
+        total = total * multiply_factor
+        x.append(month)
+        y.append(total)
+
     # This code to add the plots to the window is a little bit fiddly so you are provided with it.
     # Just make sure you generate a list called 'x' and a list called 'y' and the graph will be plotted correctly.
     figure = Figure(figsize=(5,2), dpi=100)
@@ -333,11 +361,11 @@ def create_account_screen():
     # ----- Row 1 -----
 
     # Account number label here
-    account_number_label = tk.Label(win, text='Account Number: ' + str(123456))
+    account_number_label = tk.Label(win, text='Account Number: ' + account.account_number)
     account_number_label.grid(row=1, column=0, columnspan=1)
 
     # Balance label here
-    balance_label = tk.Label(win, text='Balance: ' + str(5000))
+    balance_var.set('Balance: $' + account.balance)
     balance_label.grid(row=1, column=1, columnspan=1)
 
     # Log out button here
@@ -357,7 +385,7 @@ def create_account_screen():
     # Deposit button here
     b_deposit = tk.Button(win, text='Deposit')
     b_deposit.grid(row=2, column=2, columnspan=1,  sticky='nsew')
-    b_deposit.bind('<Button-1>', perform_deposit())
+    b_deposit.bind('<Button-1>', perform_deposit)
 
     # Withdraw button here
     b_withdraw = tk.Button(win, text='Withdraw')
@@ -379,6 +407,11 @@ def create_account_screen():
 
     # Add transaction Text widget and configure to be in 'disabled' mode so it cannot be edited.
     transaction_text_widget.grid(row=3, column=0, columnspan=4, sticky='nsew')
+
+    #add transaction details to transaction Text widget
+    for item in account.transaction_list:
+        transaction_text_widget.insert('end', item)
+
     transaction_text_widget.config(state='disabled')
     # Note: Set the yscrollcommand to be 'text_scrollbar.set' here so that it actually scrolls the Text widget
     # Note: When updating the transaction text widget it must be set back to 'normal mode' (i.e. state='normal') for it to be edited

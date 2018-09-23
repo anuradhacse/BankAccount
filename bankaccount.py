@@ -3,6 +3,11 @@ class BankAccount():
     def __init__(self):
         '''Constructor to set account_number to '0', pin_number to an empty string,
            balance to 0.0, interest_rate to 0.0 and transaction_list to an empty list.'''
+        self.account_number = '0'
+        self.pin_number = ''
+        self.balance = 0.0
+        self.interest_rate = 0.0
+        self.transaction_list = []
         
 
     def deposit(self, amount):
@@ -21,6 +26,7 @@ class BankAccount():
         '''Function to create and return a string of the transaction list. Each transaction
            consists of two lines - either the word "Deposit" or "Withdrawal" on
            the first line, and then the amount deposited or withdrawn on the next line.'''
+        return ''.join(self.transaction_list)
 
 
     def export_to_file(self):
