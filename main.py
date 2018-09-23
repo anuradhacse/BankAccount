@@ -110,7 +110,9 @@ def log_in(event):
             account.balance = account_balance
             account.interest_rate = account_interest
 
-            messagebox.showinfo('Success', 'Log in successful!')
+            #clear account number and pin
+            account_number_var.set('')
+            pin_number_var.set('')
 
             # Got here without raising an exception? Then we can log in - so remove the widgets and display the account screen
             remove_all_widgets()
@@ -118,25 +120,38 @@ def log_in(event):
         else:
             messagebox.showerror('Login failed', ' Invalid Pin Number.')
 
-
-
-
-# ---------- Button Handlers for Account Screen ----------
-
-def save_and_log_out():
+def save_and_log_out(event):
     '''Function  to overwrite the account file with the current state of
        the account object (i.e. including any new transactions), remove
        all widgets and display the login screen.'''
     global account
 
     # Save the account with any new transactions
-    
-    # Reset the bank acount object
+    filename = account.account_number + '.txt'
+    try:
+        account_file = open(filename, 'w')
+    except FileNotFoundError:
+        messagebox.showerror('Unexpected Error', ' Error occurred while saving the file.')
+        return
 
+    account_file.write(account.account_number)
+    account_file.write(account.pin_number + '\n')
+    account_file.write(str(account.balance) + '\n')
+    account_file.write(str(account.interest_rate) + '\n')
+    account_file.write(account.get_transaction_string()[:-1])
+    account_file.close()
+
+    # Reset the bank acount object
+    account.account_number = ''
+    account.pin_number = ''
+    account.balance = 0.0
+    account.interest_rate = 0.0
+    account.transaction_list = []
     # Reset the account number and pin to blank
 
     # Remove all widgets and display the login screen again
-    
+    remove_all_widgets()
+    create_login_screen()
 
 def perform_deposit(event):
     '''Function to add a deposit for the amount in the amount entry to the
@@ -182,31 +197,47 @@ def perform_deposit(event):
         # Update the interest graph with our new balance
         plot_interest_graph()
 
-def perform_withdrawal():
+def perform_withdrawal(event):
     '''Function to withdraw the amount in the amount entry from the account balance and add an entry to the transaction list.'''
     global account    
     global amount_entry
     global balance_label
     global balance_var
 
-    # Try to increase the account balance and append the deposit to the account file
-    
-        # Get the cash amount to deposit. Note: We check legality inside account's withdraw method
-        
-        # Withdraw funds        
+    withdraw_amount = amount_entry.get()
 
-        # Update the transaction widget with the new transaction by calling account.get_transaction_string()
-        # Note: Configure the text widget to be state='normal' first, then delete contents, then instert new
-        #       contents, and finally configure back to state='disabled' so it cannot be user edited.
+    try:
+        withdraw_amount = float(withdraw_amount)
+    except ValueError:
+        messagebox.showerror('Transaction Error', ' Please Enter a valid amount.')
+        amount_entry.delete(0, 'end')
+        return
+
+    if withdraw_amount < 0:
+        messagebox.showerror('Transaction Error', ' Cannot withdraw negetive amount of money.')
+        amount_entry.delete(0, 'end')
+    elif withdraw_amount > float(account.balance):
+        messagebox.showerror('Transaction Error', 'Withdraw amount is greater than the current balance.')
+        amount_entry.delete(0, 'end')
+    else:
+        amount = str(withdraw_amount) + '\n'
+        account.transaction_list += ('Withdraw\n', amount)
+        #show the new deposit in the text field
+        transaction_text_widget.config(state='normal')
+
+        transaction_text_widget.delete('1.0', 'end')
+        transaction_text_widget.insert('insert', account.get_transaction_string())
+        transaction_text_widget.config(state='disabled')
 
         # Change the balance label to reflect the new balance
+        account.balance = float(account.balance) - float(withdraw_amount)
+        balance_var.set('Balance: $' + str(account.balance))
 
         # Clear the amount entry
+        amount_entry.delete(0, 'end')
 
         # Update the interest graph with our new balance
-
-    # Catch and display any returned exception as a messagebox 'showerror'
-        
+        plot_interest_graph()
 
 # ---------- Utility functions ----------
 
@@ -371,7 +402,7 @@ def create_account_screen():
     # Log out button here
     b_logout = tk.Button(win, text='Log Out')
     b_logout.grid(row=1, column=2, columnspan=2,  sticky='nsew')
-    b_logout.bind('<Button-1>', save_and_log_out())
+    b_logout.bind('<Button-1>', save_and_log_out)
 
     # ----- Row 2 -----
 
@@ -390,7 +421,7 @@ def create_account_screen():
     # Withdraw button here
     b_withdraw = tk.Button(win, text='Withdraw')
     b_withdraw.grid(row=2, column=3, columnspan=1, sticky='nsew')
-    b_withdraw.bind('<Button-1>', perform_withdrawal())
+    b_withdraw.bind('<Button-1>', perform_withdrawal)
 
     # NOTE: Bind Deposit and Withdraw buttons via the command attribute to the relevant deposit and withdraw
     #       functions in this file. If we "BIND" these buttons then the button being pressed keeps looking as
