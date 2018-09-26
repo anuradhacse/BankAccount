@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import messagebox
 
-from pylab import plot, show, xlabel, ylabel
+# from pylab import plot, show, xlabel, ylabel
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 
@@ -76,10 +76,10 @@ def log_in(event):
         valid_account = False
 
     if valid_account:
-        account_number   = account_file.readline()
+        account_number = account_file.readline()
         pin_number = account_file.readline()[:-1]
         # Read third and fourth lines (balance and interest rate)
-        account_balance  = account_file.readline().rstrip()
+        account_balance = account_file.readline().rstrip()
         account_interest = account_file.readline().rstrip()
         # Section to read account transactions from file - start an infinite 'do-while' loop here
         # Attempt to read a line from the account file, break if we've hit the end of the file. If we
@@ -127,7 +127,7 @@ def save_and_log_out(event):
     global account
 
     # Save the account with any new transactions
-    filename = account.account_number + '.txt'
+    filename = account.account_number[:-1] + '.txt'
     try:
         account_file = open(filename, 'w')
     except FileNotFoundError:
