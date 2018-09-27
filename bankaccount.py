@@ -13,7 +13,14 @@ class BankAccount():
     def deposit(self, amount):
         '''Function to deposit an amount to the account balance. Raises an
            exception if it receives a value that cannot be cast to float.'''
-        
+        try:
+            deposit_amount = float(amount)
+            amount = str(deposit_amount) + '\n'
+            self.transaction_list += ('Deposit\n', amount)
+            self.balance = float(self.balance) + deposit_amount
+            return "deposited"
+        except (TypeError,ValueError):
+            return
 
     def withdraw(self, amount):
         '''Function to withdraw an amount from the account balance. Raises an

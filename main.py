@@ -55,7 +55,7 @@ def handle_pin_button(event):
     else:
         # Set the new pin number on the pin_number_var
         pin_number_var.set(pin_number_var.get() + event.widget['text'])
-        print("Pin Number var " + pin_number_var.get())
+        # print("Pin Number var " + pin_number_var.get())
 
 def log_in(event):
     '''Function to log in to the banking system using a known account number and PIN.'''
@@ -89,7 +89,6 @@ def log_in(event):
             line = account_file.readline()          # Attempt to read a line
 
             if not line:                            # If we failed, then exit
-                print('End of file!')
                 break
 
             # If we did NOT fail, then the 'line' we read will be the transaction
@@ -99,7 +98,7 @@ def log_in(event):
 
         #add a '\n' to last item in the tuple
         account.transaction_list[-1] += '\n'
-        print(account.transaction_list)
+        # print(account.transaction_list)
         # Close the file now we're finished with it
         account_file.close()
 
@@ -163,39 +162,38 @@ def perform_deposit(event):
 
     # Get the cash amount to deposit. Note: We check legality inside account's deposit method
     deposit_amount = amount_entry.get()
-    try:
-        deposit_amount = float(deposit_amount)
-    except ValueError:
+
+    response = account.deposit(deposit_amount)
+
+    if "deposited" != response:
         messagebox.showerror('Transaction Error', ' Please Enter a valid amount.')
         amount_entry.delete(0, 'end')
         return
 
-    if deposit_amount < 0:
+    if float(deposit_amount) < 0:
         messagebox.showerror('Transaction Error', ' Cannot deposit negetive amount of money.')
-    else:
-        amount = str(deposit_amount) + '\n'
-        account.transaction_list += ('Deposit\n', amount)
-        #show the new deposit in the text field
-        transaction_text_widget.config(state='normal')
+        return
 
-        # Try to increase the account balance and append the deposit to the account file
-        # Deposit funds
-        # Update the transaction widget with the new transaction by calling account.get_transaction_string()
-        # Note: Configure the text widget to be state='normal' first, then delete contents, then instert new
-        #       contents, and finally configure back to state='disabled' so it cannot be user edited.
-        transaction_text_widget.delete('1.0', 'end')
-        transaction_text_widget.insert('insert', account.get_transaction_string())
-        transaction_text_widget.config(state='disabled')
+    #show the new deposit in the text field
+    transaction_text_widget.config(state='normal')
 
-        # Change the balance label to reflect the new balance
-        account.balance = float(account.balance) + float(deposit_amount)
-        balance_var.set('Balance: $' + str(account.balance))
+    # Try to increase the account balance and append the deposit to the account file
+    # Deposit funds
+    # Update the transaction widget with the new transaction by calling account.get_transaction_string()
+    # Note: Configure the text widget to be state='normal' first, then delete contents, then instert new
+    #       contents, and finally configure back to state='disabled' so it cannot be user edited.
+    transaction_text_widget.delete('1.0', 'end')
+    transaction_text_widget.insert('insert', account.get_transaction_string())
+    transaction_text_widget.config(state='disabled')
 
-        # Clear the amount entry
-        amount_entry.delete(0, 'end')
+    # Change the balance label to reflect the new balance
+    balance_var.set('Balance: $' + str(account.balance))
 
-        # Update the interest graph with our new balance
-        plot_interest_graph()
+    # Clear the amount entry
+    amount_entry.delete(0, 'end')
+
+    # Update the interest graph with our new balance
+    plot_interest_graph()
 
 def perform_withdrawal(event):
     '''Function to withdraw the amount in the amount entry from the account balance and add an entry to the transaction list.'''
