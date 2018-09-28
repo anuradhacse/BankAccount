@@ -126,19 +126,10 @@ def save_and_log_out(event):
     global account
 
     # Save the account with any new transactions
-    filename = account.account_number[:-1] + '.txt'
-    try:
-        account_file = open(filename, 'w')
-    except FileNotFoundError:
-        messagebox.showerror('Unexpected Error', ' Error occurred while saving the file.')
+    response = account.export_to_file()
+    if "success" != response:
+        messagebox.showerror('File Not Found', response)
         return
-
-    account_file.write(account.account_number)
-    account_file.write(account.pin_number + '\n')
-    account_file.write(str(account.balance) + '\n')
-    account_file.write(str(account.interest_rate) + '\n')
-    account_file.write(account.get_transaction_string()[:-1])
-    account_file.close()
 
     # Reset the bank acount object
     account.account_number = ''
@@ -204,38 +195,33 @@ def perform_withdrawal(event):
 
     withdraw_amount = amount_entry.get()
 
-    try:
-        withdraw_amount = float(withdraw_amount)
-    except ValueError:
-        messagebox.showerror('Transaction Error', ' Please Enter a valid amount.')
+    response = account.withdraw(withdraw_amount)
+    if "withdraw" != response:
+        messagebox.showerror('Transaction Error', response)
         amount_entry.delete(0, 'end')
         return
 
-    if withdraw_amount < 0:
+    if float(withdraw_amount) < 0:
         messagebox.showerror('Transaction Error', ' Cannot withdraw negetive amount of money.')
         amount_entry.delete(0, 'end')
-    elif withdraw_amount > float(account.balance):
-        messagebox.showerror('Transaction Error', 'Withdraw amount is greater than the current balance.')
-        amount_entry.delete(0, 'end')
-    else:
-        amount = str(withdraw_amount) + '\n'
-        account.transaction_list += ('Withdraw\n', amount)
-        #show the new deposit in the text field
-        transaction_text_widget.config(state='normal')
+        return
 
-        transaction_text_widget.delete('1.0', 'end')
-        transaction_text_widget.insert('insert', account.get_transaction_string())
-        transaction_text_widget.config(state='disabled')
+    #show the new deposit in the text field
+    transaction_text_widget.config(state='normal')
 
-        # Change the balance label to reflect the new balance
-        account.balance = float(account.balance) - float(withdraw_amount)
-        balance_var.set('Balance: $' + str(account.balance))
+    transaction_text_widget.delete('1.0', 'end')
+    transaction_text_widget.insert('insert', account.get_transaction_string())
+    transaction_text_widget.config(state='disabled')
 
-        # Clear the amount entry
-        amount_entry.delete(0, 'end')
+    # Change the balance label to reflect the new balance
+    # account.balance = float(account.balance) - float(withdraw_amount)
+    balance_var.set('Balance: $' + str(account.balance))
 
-        # Update the interest graph with our new balance
-        plot_interest_graph()
+    # Clear the amount entry
+    amount_entry.delete(0, 'end')
+
+    # Update the interest graph with our new balance
+    plot_interest_graph()
 
 # ---------- Utility functions ----------
 
@@ -258,7 +244,7 @@ def plot_interest_graph():
     x = []
     y = []
     monthly_interest = float(account.interest_rate) / 12
-    multiply_factor = 1 + (monthly_interest) #insterest rate is in format 0.33 not like 33%. So we don
+    multiply_factor = 1 + (monthly_interest)
     total = float(account.balance)
     for month in range(1, 13):
         total = total * multiply_factor
